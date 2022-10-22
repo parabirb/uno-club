@@ -110,7 +110,7 @@
                 $("#deck").text(`${packet.contents.round.deck} cards`);
                 $("#points").text(`${packet.contents.points[0]} for ${packet.contents.users[0]} and ${packet.contents.points[1]} for ${packet.contents.users[1]}`);
                 $("#cards").text(`${packet.contents.round.hands[0]} for ${packet.contents.users[0]} and ${packet.contents.round.hands[1]} for ${packet.contents.users[1]}`);
-                $("#turn").text(`It's ${packet.contents.users[packet.contents.round.turn]}'s turn. They have ${packet.contents.round.drawn ? "" : "not"} drawn a card${ packet.contents.round.drawn ? "" : "yet"}.`);
+                $("#turn").text(`It's ${packet.contents.users[packet.contents.round.turn]}'s turn. They have ${packet.contents.round.drawn ? "" : "not"} drawn a card${ packet.contents.round.drawn ? "" : " yet"}.`);
                 $("#state").text(`This game expires ${new Date(packet.contents.endDate).toLocaleString()}.`);
             }
             // if someone won
@@ -195,7 +195,7 @@
                 $("#deck").text(`${packet.contents.round.deck} ${packet.contents.round.deck > 1 ? "cards" : "card"}`);
                 $("#points").text(`You have ${packet.contents.points[userIndex]} points. Your opponent has ${packet.contents.points[opponentIndex]} points.`);
                 $("#cards").text(`You have ${userHand.length} ${userHand.length !== 1 ? "cards" : "card"}. Your opponent has ${packet.contents.round.hands[opponentIndex]} ${packet.contents.round.hands[opponentIndex].length !== 1 ? "cards" : "card"}.`);
-                $("#turn").text(`It's your ${userTurn ? "" : "opponent's "}turn. You${userTurn ? " have" : "r opponent has"} ${packet.contents.round.drawn ? "" : "not"} drawn a card ${packet.contents.round.drawn ? "" : "yet"}.`);
+                $("#turn").text(`It's your ${userTurn ? "" : "opponent's "}turn. You${userTurn ? " have" : "r opponent has"} ${packet.contents.round.drawn ? "" : "not"} drawn a card${packet.contents.round.drawn ? "" : " yet"}.`);
                 $("#state").text(`This game expires ${new Date(packet.contents.endDate).toLocaleString()}.`);
                 let handElems = [];
                 let _index = 0;
