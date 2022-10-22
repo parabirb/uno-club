@@ -1,0 +1,93 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Uno Club</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+            font-weight: 600;
+            font-family: Inter, sans-serif;
+        }
+
+        main {
+            flex: 1 0 auto;
+            align-items: center;
+        }
+    </style>
+</head>
+<body class="grey lighten-5 grey-text text-darken-4" style="align-content: center">
+<main style="display: flex">
+    <div class="container">
+        <div class="row">
+            <div class="col s12 m6 l6">
+                <noscript>
+                    <h6>Uno Club will not function at all without Javascript. Don't worry, all of our JS is libre.</h6>
+                </noscript>
+                <h1>Uno Club</h1>
+                <h3>A public domain project by <a href="https://github.com/parabirb">parabirb</a>.</h3>
+                <h5>Enjoy Uno as it was meant to be played. Open source. No ads. Free forever.</h5>
+                <h6><%- instanceInfo %></h6>
+            </div>
+            <div class="col s12 m6 l6">
+                <div id="notLoggedIn" class="hide">
+                    <h3>Join us.</h3>
+                    <h5>Registration requires an invite.</h5>
+                    <a class="waves-effect waves-light btn-large" href="/register"><i class="material-icons left">how_to_reg</i> Register</a>
+                    <h3>Return home.</h3>
+                    <a class="waves-effect waves-light btn-large" href="/login"><i class="material-icons left">login</i> Login</a>
+                </div>
+                <div id="loggedIn" class="hide">
+                    <h3>Welcome home.</h3>
+                    <a class="waves-effect waves-light btn-large" href="/dashboard"><i class="material-icons left">dashboard</i> Dashboard</a>
+                    <h3>Leaving so soon?</h3>
+                    <a class="waves-effect waves-light btn-large" onclick="logout()"><i class="material-icons left">logout</i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script>
+    // check if storage works
+    function storageAvailable(type) {
+        let storage = null;
+        try {
+            storage = window[type];
+            let x = '__storage_test__';
+            storage.setItem(x, x);
+            storage.removeItem(x);
+            return true;
+        } catch (e) {
+            return e instanceof DOMException && (
+                    e.code === 22 ||
+                    e.code === 1014 ||
+                    e.name === 'QuotaExceededError' ||
+                    e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
+                (storage && storage.length !== 0);
+        }
+    }
+
+    // if our storage is unavailable, prompt the user
+    if (!storageAvailable("localStorage")) alert("Your browser is incompatible with Uno Club. This is most likely because your browser does not support localStorage.");
+
+    // set the correct home page to display
+    if (localStorage.getItem("loginInfo")) $("#loggedIn").removeClass("hide");
+    else $("#notLoggedIn").removeClass("hide");
+
+    // logout function
+    function logout() {
+        localStorage.removeItem("loginInfo");
+        window.location.reload();
+    }
+</script>
+</body>
+</html>

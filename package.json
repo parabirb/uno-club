@@ -1,0 +1,24 @@
+{
+  "name": "uno-club",
+  "version": "1.0.0",
+  "description": "An online ranked competitive Uno platform.",
+  "main": "index.js",
+  "scripts": {
+    "test": "nodemon ."
+  },
+  "author": "parabirb",
+  "license": "Unlicense",
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  },
+  "dependencies": {
+    "better-sse": "^0.8.0",
+    "ejs": "^3.1.8",
+    "express": "^4.18.2",
+    "lokijs": "^1.5.12",
+    "openskill": "^2.1.0",
+    "shuffle": "^0.2.5",
+    "tweetnacl": "^1.0.3",
+    "tweetnacl-util": "^0.15.1"
+  }
+}

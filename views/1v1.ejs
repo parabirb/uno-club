@@ -1,0 +1,346 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Uno Club - <%- a %> vs. <%- b %></title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+            font-weight: 600;
+            font-family: Inter, sans-serif;
+        }
+
+        main {
+            flex: 1 0 auto;
+            align-items: center;
+        }
+    </style>
+</head>
+<body class="grey lighten-5 grey-text text-darken-4" style="align-content: center">
+<main style="display: flex">
+    <div class="container">
+        <div class="row">
+            <div class="col s12 m6 l6">
+                <noscript>
+                    <h6>Uno Club will not function at all without Javascript. Don't worry, all of our JS is libre.</h6>
+                </noscript>
+                <h1>Game</h1>
+                <h3><%- a %> vs. <%- b %></h3>
+                <h5>Deck: <span id="deck">#</span></h5>
+                <h5>Points: <span id="points">#</span></h5>
+                <h5>Cards: <span id="cards">#</span></h5>
+                <h5>Turn: <span id="turn">Turn</span></h5>
+                <h5><span id="state">Game State</span></h5>
+                <a class="waves-effect waves-light btn-large" onclick="history.back()"><i class="material-icons left">arrow_back</i>
+                    Back</a>
+            </div>
+            <div class="col s12 m6 l6">
+                <h3>Chat</h3>
+                <span id="chat" style="word-wrap: break-word">No messages.</span>
+                <div class="input-field col s12 hide" id="chatboxContainer">
+                    <input id="chatbox" type="text" class="validate"
+                           style="font-family: Inter, sans-serif !important;">
+                    <label for="chatbox">Send a message...</label>
+                </div>
+                <h3>Top Card</h3>
+                <div class="row">
+                    <div class="card-panel darken-2 col s6 m6 l4" id="topCard">
+                        Top Card
+                    </div>
+                </div>
+                <h3 class="hide" id="handTitle">Hand</h3>
+                <div class="row hide" id="hand">
+                    Loading...
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<script src="https://cdn.jsdelivr.net/gh/dchest/tweetnacl-js@71df1d6a1d78236ca3e9f6c788786e21f5a651a6/nacl-fast.min.js"
+        crossorigin="anonymous"
+        integrity="sha384-05+sicyRJQ56XpL4U9HJ8YbtSzFDvAg7apPKOGV6A0JsAJKFM68jp5oLnUjG5mEp"></script>
+<script src="https://cdn.jsdelivr.net/gh/dchest/tweetnacl-util-js@2765406d20ce3f3f402a39a3533a0e2e1e15483c/nacl-util.min.js"
+        crossorigin="anonymous"
+        integrity="sha384-qpU3wxGxaAPcz02pOLeZTv5B0rNzsh3CETsUqdHxRBP70bO0kHoBopr+f9AcGj04"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script>
+    // check if storage works
+    function storageAvailable(type) {
+        let storage = null;
+        try {
+            storage = window[type];
+            let x = '__storage_test__';
+            storage.setItem(x, x);
+            storage.removeItem(x);
+            return true;
+        } catch (e) {
+            return e instanceof DOMException && (
+                    e.code === 22 ||
+                    e.code === 1014 ||
+                    e.name === 'QuotaExceededError' ||
+                    e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
+                (storage && storage.length !== 0);
+        }
+    }
+
+    // if our storage is unavailable, prompt the user
+    if (!storageAvailable("localStorage")) alert("Your browser is incompatible with Uno Club. This is most likely because your browser does not support localStorage.");
+
+    // if we aren't logged in or we aren't a player
+    if (!localStorage.getItem("loginInfo") || (localStorage.getItem("loginInfo").split("-")[0] !== "<%- a %>" && localStorage.getItem("loginInfo").split("-")[0] !== "<%- b %>")) {
+        // connect to the server
+        let source = new EventSource("/sse/1v1Game/<%- a %>/<%- b %>/none");
+        // when we receive an event from the server
+        source.onmessage = event => {
+            // parse the data packet
+            let packet = JSON.parse(event.data);
+            // if the game state changed
+            if (packet.type === "state") {
+                $("#topCard").removeClass("blue green yellow red");
+                $("#topCard").addClass(`${packet.contents.round.discard[0].color !== "wild" ? packet.contents.round.discard[0].color : packet.contents.round.discard[0].chosen}`);
+                $("#topCard").html(`<h4>${packet.contents.round.discard[0].color.substring(0, 1).toUpperCase() + packet.contents.round.discard[0].color.substring(1)} ${packet.contents.round.discard[0].type.substring(0, 1).toUpperCase() + packet.contents.round.discard[0].type.substring(1)}</h4>`)
+                $("#deck").text(`${packet.contents.round.deck} cards`);
+                $("#points").text(`${packet.contents.points[0]} for ${packet.contents.users[0]} and ${packet.contents.points[1]} for ${packet.contents.users[1]}`);
+                $("#cards").text(`${packet.contents.round.hands[0]} for ${packet.contents.users[0]} and ${packet.contents.round.hands[1]} for ${packet.contents.users[1]}`);
+                $("#turn").text(`It's ${packet.contents.users[packet.contents.round.turn]}'s turn. They have ${packet.contents.round.drawn ? "" : "not"} drawn a card${ packet.contents.round.drawn ? "" : "yet"}.`);
+                $("#state").text(`This game expires ${new Date(packet.contents.endDate).toLocaleString()}.`);
+            }
+            // if someone won
+            else if (packet.type === "win") {
+                $("#state").text(`This game has ended. ${packet.contents} won.`);
+                $("#chatboxContainer").addClass("hide");
+            }
+            // if a chat message was sent
+            else if (packet.type === "chat") {
+                $("#chat").text(`${packet.contents.username}: ${packet.contents.message}`);
+            }
+        };
+        // if we're logged in but not a player
+        if (localStorage.getItem("loginInfo")) {
+            // hex functions
+            const toHexString = bytes =>
+                bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, "0"), "");
+
+            // get login info
+            let loginInfo = localStorage.getItem("loginInfo");
+            let username = loginInfo.split("-")[0];
+            let secretKeyBase64 = loginInfo.split("-")[1];
+            let keypair = nacl.sign.keyPair.fromSecretKey(nacl.util.decodeBase64(secretKeyBase64));
+
+            // unhide the chatbox
+            $("#chatboxContainer").removeClass("hide");
+            $("#chatbox").on("keypress", async (e) => {
+                if (e.key === "Enter") {
+                    let message = $("#chatbox").val();
+                    if (message.length > 280) {
+                        M.toast({html: "Chats are up to 280 characters."});
+                        return;
+                    }
+                    let json = await fetch("/1v1Game/<%- a %>/<%- b %>/chat", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            username,
+                            message: nacl.util.encodeBase64(nacl.sign(nacl.util.decodeUTF8(message), keypair.secretKey))
+                        })
+                    }).then(res => res.json());
+                    if (json.status === "success") $("#chatbox").val("");
+                    else M.toast({html: json.error});
+                }
+            });
+        }
+
+        // close the SSE connection when we close out
+        $(window).on("beforeunload", () => source.close());
+    }
+    // if we are a player
+    else {
+        // hex functions
+        const toHexString = bytes =>
+            bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, "0"), "");
+
+        // get login info
+        let loginInfo = localStorage.getItem("loginInfo");
+        let username = loginInfo.split("-")[0];
+        let secretKeyBase64 = loginInfo.split("-")[1];
+        let keypair = nacl.sign.keyPair.fromSecretKey(nacl.util.decodeBase64(secretKeyBase64));
+
+        // connect to the server
+        let source = new EventSource(`/sse/1v1Game/<%- a %>/<%- b %>/${username}.${toHexString(nacl.sign(nacl.util.decodeUTF8("authentication"), keypair.secretKey))}`);
+
+        // when we receive an event from the server
+        source.onmessage = event => {
+            // parse the data packet
+            let packet = JSON.parse(event.data);
+            // if the game state changed
+            if (packet.type === "state") {
+                console.log(packet.contents);
+                let userIndex = packet.contents.users.indexOf(username);
+                let opponentIndex = userIndex === 1 ? 0 : 1;
+                let userHand = packet.contents.round.hands[userIndex];
+                let userTurn = packet.contents.round.turn === userIndex;
+                $("#topCard").removeClass("blue green yellow red");
+                $("#topCard").addClass(`${packet.contents.round.discard[0].color !== "wild" ? packet.contents.round.discard[0].color : packet.contents.round.discard[0].chosen}`);
+                $("#topCard").html(`<h4>${packet.contents.round.discard[0].color.substring(0, 1).toUpperCase() + packet.contents.round.discard[0].color.substring(1)} ${packet.contents.round.discard[0].type.substring(0, 1).toUpperCase() + packet.contents.round.discard[0].type.substring(1)}</h4>`)
+                $("#deck").text(`${packet.contents.round.deck} ${packet.contents.round.deck > 1 ? "cards" : "card"}`);
+                $("#points").text(`You have ${packet.contents.points[userIndex]} points. Your opponent has ${packet.contents.points[opponentIndex]} points.`);
+                $("#cards").text(`You have ${userHand.length} ${userHand.length !== 1 ? "cards" : "card"}. Your opponent has ${packet.contents.round.hands[opponentIndex]} ${packet.contents.round.hands[opponentIndex].length !== 1 ? "cards" : "card"}.`);
+                $("#turn").text(`It's your ${userTurn ? "" : "opponent's "}turn. You${userTurn ? " have" : "r opponent has"} ${packet.contents.round.drawn ? "" : "not"} drawn a card yet.`);
+                $("#state").text(`This game expires ${new Date(packet.contents.endDate).toLocaleString()}.`);
+                let handElems = [];
+                let _index = 0;
+                for (let card of userHand) {
+                    handElems.push(`<div class="card-panel darken-2 col s4 ${card.color}">
+                        <h5>${card.color.substring(0, 1).toUpperCase() + card.color.substring(1)} ${card.type.substring(0, 1).toUpperCase() + card.type.substring(1)}</h5>
+                        ${(() => {
+                            if (!userTurn) return "";
+                            else if (card.color !== "wild") {
+                                return `<p><a href="#" class="waves-effect waves-light white black-text btn" onClick="play(${_index})"><i class="material-icons left">arrow_upward</i> Play card</a></p>`;
+                            }
+                            else {
+                                return `<p>Play card (${["red", "yellow", "green", "blue"].map(x => `<a href="#" onClick="play(${_index}, '${x}')">${x}</a>`).join(", ")})</p>`;
+                            }
+                        })()}
+                    </div>`);
+                    _index++;
+                }
+                $("#hand").html((userTurn ? (packet.contents.round.drawn ? `<a href="#" class="waves-effect waves-light white black-text btn" onClick="pass()"><i class="material-icons left">arrow_right_alt</i> Pass</a><br>` : `<a href="#" class="waves-effect waves-light white black-text btn" onClick="draw()"><i class="material-icons left">arrow_downward</i> Draw card</a><br>`) : "") + handElems.reduce((previous, current) => {
+                    if (previous[previous.length - 1].length === 2) {
+                        previous.push([current]);
+                        return previous;
+                    }
+                    else {
+                        previous[previous.length - 1].push(current);
+                        return previous;
+                    }
+                }, [[]]).map(x => `<div class="row">${x.join('<div class="col s1"></div>')}</div>`).join(""));
+            }
+            // if someone won
+            else if (packet.type === "win") {
+                $("#state").text(`This game has ended. ${packet.contents === username ? "You" : "Your opponent"} won.`);
+                $("#chatboxContainer").addClass("hide");
+                $("#hand").hide();
+                $("#handTitle").hide();
+            }
+            // if a chat message was sent
+            else if (packet.type === "chat") {
+                $("#chat").text(`${packet.contents.username}: ${packet.contents.message}`);
+            }
+        };
+
+        // unhide the chatbox
+        $("#chatboxContainer").removeClass("hide");
+        $("#chatbox").on("keypress", async (e) => {
+            if (e.key === "Enter") {
+                let message = $("#chatbox").val();
+                if (message.length > 280) {
+                    M.toast({html: "Chats are up to 280 characters."});
+                    return;
+                }
+                let json = await fetch("/1v1Game/<%- a %>/<%- b %>/chat", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        username,
+                        message: nacl.util.encodeBase64(nacl.sign(nacl.util.decodeUTF8(message), keypair.secretKey))
+                    })
+                }).then(res => res.json());
+                if (json.status === "success") $("#chatbox").val("");
+                else M.toast({html: json.error});
+            }
+        });
+
+        // unhide the hand
+        $("#handTitle").removeClass("hide");
+        $("#hand").removeClass("hide");
+
+        // close the SSE connection when we close out
+        $(window).on("beforeunload", () => source.close());
+    }
+
+    // play card function
+    async function play(index, chosen = "na") {
+        // get login info
+        let loginInfo = localStorage.getItem("loginInfo");
+        let username = loginInfo.split("-")[0];
+        let secretKeyBase64 = loginInfo.split("-")[1];
+        let keypair = nacl.sign.keyPair.fromSecretKey(nacl.util.decodeBase64(secretKeyBase64));
+
+        // send the card to the server
+        let json = await fetch("/1v1Game/<%- a %>/<%- b %>/play", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username,
+                signature: nacl.util.encodeBase64(nacl.sign(nacl.util.decodeUTF8(`<%- a %>-<%- b %>-playCard-${index} ${chosen}`), keypair.secretKey))
+            })
+        }).then(res => res.json());
+
+        // notify the user if we errored
+        if (json.status !== "success") M.toast({html: json.error});
+    }
+
+    // draw card function
+    async function draw() {
+        // get login info
+        let loginInfo = localStorage.getItem("loginInfo");
+        let username = loginInfo.split("-")[0];
+        let secretKeyBase64 = loginInfo.split("-")[1];
+        let keypair = nacl.sign.keyPair.fromSecretKey(nacl.util.decodeBase64(secretKeyBase64));
+
+        // send the card to the server
+        let json = await fetch("/1v1Game/<%- a %>/<%- b %>/draw", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username,
+                signature: nacl.util.encodeBase64(nacl.sign(nacl.util.decodeUTF8(`<%- a %>-<%- b %>-draw`), keypair.secretKey))
+            })
+        }).then(res => res.json());
+
+        // notify the user if we errored
+        if (json.status !== "success") M.toast({html: json.error});
+    }
+
+    // pass card function
+    async function pass() {
+        // get login info
+        let loginInfo = localStorage.getItem("loginInfo");
+        let username = loginInfo.split("-")[0];
+        let secretKeyBase64 = loginInfo.split("-")[1];
+        let keypair = nacl.sign.keyPair.fromSecretKey(nacl.util.decodeBase64(secretKeyBase64));
+
+        // send the card to the server
+        let json = await fetch("/1v1Game/<%- a %>/<%- b %>/pass", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username,
+                signature: nacl.util.encodeBase64(nacl.sign(nacl.util.decodeUTF8(`<%- a %>-<%- b %>-pass`), keypair.secretKey))
+            })
+        }).then(res => res.json());
+
+        // notify the user if we errored
+        if (json.status !== "success") M.toast({html: json.error});
+    }
+</script>
+</body>
+</html>

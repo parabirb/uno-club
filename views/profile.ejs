@@ -1,0 +1,193 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Uno Club - <%- username %></title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+            font-weight: 600;
+            font-family: Inter, sans-serif;
+        }
+
+        main {
+            flex: 1 0 auto;
+            align-items: center;
+        }
+    </style>
+</head>
+<body class="grey lighten-5 grey-text text-darken-4" style="align-content: center">
+<main style="display: flex">
+    <div class="container">
+        <div class="row">
+            <div class="col s12 m6 l6">
+                <noscript>
+                    <h6>Uno Club will not function at all without Javascript. Don't worry, all of our JS is libre.</h6>
+                </noscript>
+                <h1>Profile</h1>
+                <h3>See the juicy bits.</h3>
+                <div class="card">
+                    <div class="card-content">
+                        <span class="card-title" id="username">Username</span>
+                        <span id="rating">Rating</span>
+                    </div>
+                    <div class="card-action">
+                        <a href="#" onclick="navigator.clipboard.writeText(window.location.href); M.toast({html: 'Link copied.'})">Copy Link</a>
+                        <a href="#" onclick="invite()" class="hide" id="invite">Invite to a Game</a>
+                    </div>
+                </div>
+                <a class="waves-effect waves-light btn-large" onclick="history.back()"><i class="material-icons left">arrow_back</i>
+                    Back</a>
+            </div>
+            <div class="col s12 m6 l6">
+                <h3>Games</h3>
+                <div id="games">
+                    <p>Loading...</p>
+                </div>
+                <h3>Invites</h3>
+                <div id="invites">
+                    <p>Loading...</p>
+                </div>
+                <h3>Outgoing Invites</h3>
+                <div id="outgoingInvites">
+                    <p>Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<script src="https://cdn.jsdelivr.net/gh/dchest/tweetnacl-js@71df1d6a1d78236ca3e9f6c788786e21f5a651a6/nacl-fast.min.js"
+        crossorigin="anonymous"
+        integrity="sha384-05+sicyRJQ56XpL4U9HJ8YbtSzFDvAg7apPKOGV6A0JsAJKFM68jp5oLnUjG5mEp"></script>
+<script src="https://cdn.jsdelivr.net/gh/dchest/tweetnacl-util-js@2765406d20ce3f3f402a39a3533a0e2e1e15483c/nacl-util.min.js"
+        crossorigin="anonymous"
+        integrity="sha384-qpU3wxGxaAPcz02pOLeZTv5B0rNzsh3CETsUqdHxRBP70bO0kHoBopr+f9AcGj04"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script>
+    // check if storage works
+    function storageAvailable(type) {
+        let storage = null;
+        try {
+            storage = window[type];
+            let x = '__storage_test__';
+            storage.setItem(x, x);
+            storage.removeItem(x);
+            return true;
+        } catch (e) {
+            return e instanceof DOMException && (
+                    e.code === 22 ||
+                    e.code === 1014 ||
+                    e.name === 'QuotaExceededError' ||
+                    e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
+                (storage && storage.length !== 0);
+        }
+    }
+
+    // if our storage is unavailable, prompt the user
+    if (!storageAvailable("localStorage")) alert("Your browser is incompatible with Uno Club. This is most likely because your browser does not support localStorage.");
+
+    let username = "<%- username %>";
+
+    // set username value
+    $("#username").text(username);
+    // set ranking value
+    fetch(`/userInfo/${username}`).then(res => res.json()).then(json => $("#rating").text(`Rating: ${Math.round(((json.data.rating.mu - (3 * json.data.rating.sigma)) * 100) / 100)}`));
+    // set games value
+    fetch(`/gamesInfo/${username}`).then(res => res.json()).then(json => {
+        if (json.data.length === 0) $("#games").html("<p>This user isn't in any active games.</p>");
+        else {
+            let elements = [];
+            for (let game of json.data) {
+                elements.push(`<div class="card">
+                    <div class="card-content">
+                        <span class="card-title">Game</span>
+                        Type: 1v1<br>
+                        Opponent: ${game.users.filter(x => x !== username)[0]} (<a target="_blank" href="/profile/${game.users.filter(x => x !== username)[0]}">profile</a>)<br>
+                        Expires: ${new Date(game.endDate).toLocaleString()}
+                    </div>
+                    <div class="card-action">
+                        <a href="/1v1Game/${game.users[0]}/${game.users[1]}">Go To</a>
+                    </div>
+                </div>`);
+            }
+            $("#games").html(elements.join(""));
+        }
+    });
+    // set invites value
+    fetch(`/invitesInfo/${username}`).then(res => res.json()).then(json => {
+        if (json.data.length === 0) $("#invites").html("<p>This user hasn't been invited to any games.</p>");
+        else {
+            let elements = [];
+            for (let invite of json.data) {
+                if (invite.type === "1v1") {
+                    elements.push(`<div class="card">
+                    <div class="card-content">
+                        <span class="card-title">Challenge</span>
+                        Type: 1v1<br>
+                        Challenger: ${invite.challenger} (<a target="_blank" href="/profile/${invite.challenger}">profile</a>)<br>
+                        Expires: ${new Date(invite.endDate).toLocaleString()}
+                    </div>
+                </div>`);
+                }
+            }
+            $("#invites").html(elements.join(""));
+        }
+    });
+    // set outgoing invites value
+    fetch(`/outgoingInvitesInfo/${username}`).then(res => res.json()).then(json => {
+        if (json.data.length === 0) $("#outgoingInvites").html("<p>This user doesn't have any active invites.</p>");
+        else {
+            let elements = [];
+            for (let invite of json.data) {
+                if (invite.type === "1v1") {
+                    elements.push(`<div class="card">
+                    <div class="card-content">
+                        <span class="card-title">Challenge</span>
+                        Type: 1v1<br>
+                        User: ${invite.users[0]} (<a target="_blank" href="/profile/${invite.users[0]}">profile</a>)<br>
+                        Expires: ${new Date(invite.endDate).toLocaleString()}
+                    </div>
+                </div>`);
+                }
+            }
+            $("#outgoingInvites").html(elements.join(""));
+        }
+    });
+
+    // unhide invite
+    if (localStorage.getItem("loginInfo") !== null) $("#invite").removeClass("hide");
+
+    // invite function
+    async function invite() {
+        let [user, privKey] = localStorage.getItem("loginInfo").split("-");
+        let keypair = nacl.sign.keyPair.fromSecretKey(nacl.util.decodeBase64(privKey));
+        let json = await fetch("/challengeIndividual", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                challenger: user,
+                username,
+                signature: nacl.util.encodeBase64(nacl.sign(nacl.util.decodeUTF8(`invite-${Date.now()}`), keypair.secretKey))
+            })
+        }).then(res => res.json());
+        if (json.status === "error") {
+            M.toast({html: json.error});
+        }
+        else {
+            M.toast({html: "Invite sent."});
+            window.location.reload();
+        }
+    }
+</script>
+</body>
+</html>

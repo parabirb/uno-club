@@ -1,0 +1,233 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Uno Club - Dashboard</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+            font-weight: 600;
+            font-family: Inter, sans-serif;
+        }
+
+        main {
+            flex: 1 0 auto;
+            align-items: center;
+        }
+    </style>
+</head>
+<body class="grey lighten-5 grey-text text-darken-4" style="align-content: center">
+<main style="display: flex">
+    <div class="container">
+        <div class="row">
+            <div class="col s12 m6 l6">
+                <noscript>
+                    <h6>Uno Club will not function at all without Javascript. Don't worry, all of our JS is libre.</h6>
+                </noscript>
+                <h1>Dashboard</h1>
+                <h3>See everything Uno Club in one place.</h3>
+                <div class="card">
+                    <div class="card-content">
+                        <span class="card-title" id="username">Username</span>
+                        <span id="rating">Rating</span>
+                    </div>
+                    <div class="card-action">
+                        <a href="#" id="profile">Profile</a>
+                        <a href="#" onclick="generateInvite()">Create Registration Code</a>
+                    </div>
+                </div>
+                <a class="waves-effect waves-light btn-large" onclick="history.back()"><i class="material-icons left">arrow_back</i>
+                    Back</a>
+            </div>
+            <div class="col s12 m6 l6">
+                <h3>Games</h3>
+                <div id="games">
+                    <p>Loading...</p>
+                </div>
+                <h3>Invites</h3>
+                <div id="invites">
+                    <p>Loading...</p>
+                </div>
+                <h3>Outgoing Invites</h3>
+                <div id="outgoingInvites">
+                    <p>Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<script src="https://cdn.jsdelivr.net/gh/dchest/tweetnacl-js@71df1d6a1d78236ca3e9f6c788786e21f5a651a6/nacl-fast.min.js"
+        crossorigin="anonymous"
+        integrity="sha384-05+sicyRJQ56XpL4U9HJ8YbtSzFDvAg7apPKOGV6A0JsAJKFM68jp5oLnUjG5mEp"></script>
+<script src="https://cdn.jsdelivr.net/gh/dchest/tweetnacl-util-js@2765406d20ce3f3f402a39a3533a0e2e1e15483c/nacl-util.min.js"
+        crossorigin="anonymous"
+        integrity="sha384-qpU3wxGxaAPcz02pOLeZTv5B0rNzsh3CETsUqdHxRBP70bO0kHoBopr+f9AcGj04"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script>
+    // check if storage works
+    function storageAvailable(type) {
+        let storage = null;
+        try {
+            storage = window[type];
+            let x = '__storage_test__';
+            storage.setItem(x, x);
+            storage.removeItem(x);
+            return true;
+        } catch (e) {
+            return e instanceof DOMException && (
+                    e.code === 22 ||
+                    e.code === 1014 ||
+                    e.name === 'QuotaExceededError' ||
+                    e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
+                (storage && storage.length !== 0);
+        }
+    }
+
+    // if our storage is unavailable, prompt the user
+    if (!storageAvailable("localStorage")) alert("Your browser is incompatible with Uno Club. This is most likely because your browser does not support localStorage.");
+
+    // set the correct home page to display
+    if (!localStorage.getItem("loginInfo")) window.location.replace("/");
+
+    // hex functions
+    const toHexString = bytes =>
+        bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, "0"), "");
+
+    // get login info
+    let loginInfo = localStorage.getItem("loginInfo");
+    let username = loginInfo.split("-")[0];
+    let secretKeyBase64 = loginInfo.split("-")[1];
+    let keypair = nacl.sign.keyPair.fromSecretKey(nacl.util.decodeBase64(secretKeyBase64));
+
+    // set username value
+    $("#username").text(username);
+    // set profile link
+    $("#profile").attr("href", `/profile/${username}`);
+    // set ranking value
+    fetch(`/userInfo/${username}`).then(res => res.json()).then(json => $("#rating").text(`Rating: ${Math.round(((json.data.rating.mu - (3 * json.data.rating.sigma)) * 100) / 100)}`));
+    // set games value
+    fetch(`/gamesInfo/${username}`).then(res => res.json()).then(json => {
+        if (json.data.length === 0) $("#games").html("<p>You aren't in any active games.</p>");
+        else {
+            let elements = [];
+            for (let game of json.data) {
+                elements.push(`<div class="card">
+                    <div class="card-content">
+                        <span class="card-title">Game</span>
+                        Type: 1v1<br>
+                        Opponent: ${game.users.filter(x => x !== username)[0]} (<a target="_blank" href="/profile/${game.users.filter(x => x !== username)[0]}">profile</a>)<br>
+                        Expires: ${new Date(game.endDate).toLocaleString()}
+                    </div>
+                    <div class="card-action">
+                        <a href="/1v1Game/${game.users[0]}/${game.users[1]}">Go To</a>
+                    </div>
+                </div>`);
+            }
+            $("#games").html(elements.join(""));
+        }
+    });
+    // set invites value
+    fetch(`/invitesInfo/${username}`).then(res => res.json()).then(json => {
+        if (json.data.length === 0) $("#invites").html("<p>You haven't been invited to any games.</p>");
+        else {
+            let elements = [];
+            for (let invite of json.data) {
+                if (invite.type === "1v1") {
+                    elements.push(`<div class="card">
+                    <div class="card-content">
+                        <span class="card-title">Challenge</span>
+                        Type: 1v1<br>
+                        Challenger: ${invite.challenger} (<a target="_blank" href="/profile/${invite.challenger}">profile</a>)<br>
+                        Expires: ${new Date(invite.endDate).toLocaleString()}
+                    </div>
+                    <div class="card-action">
+                        <a href="#" onclick="accept1v1Invite('${invite.challenger}')">Accept Invite</a>
+                        <a href="#" onclick="decline1v1Invite('${invite.challenger}')">Decline Invite</a>
+                    </div>
+                </div>`);
+                }
+            }
+            $("#invites").html(elements.join(""));
+        }
+    });
+    // set outgoing invites value
+    fetch(`/outgoingInvitesInfo/${username}`).then(res => res.json()).then(json => {
+        if (json.data.length === 0) $("#outgoingInvites").html("<p>You don't have any active invites.</p>");
+        else {
+            let elements = [];
+            for (let invite of json.data) {
+                if (invite.type === "1v1") {
+                    elements.push(`<div class="card">
+                    <div class="card-content">
+                        <span class="card-title">Challenge</span>
+                        Type: 1v1<br>
+                        User: ${invite.users[0]} (<a target="_blank" href="/profile/${invite.users[0]}">profile</a>)<br>
+                        Expires: ${new Date(invite.endDate).toLocaleString()}
+                    </div>
+                </div>`);
+                }
+            }
+            $("#outgoingInvites").html(elements.join(""));
+        }
+    });
+
+    // invite generation function
+    function generateInvite() {
+        // generate invite code
+        let invite = `${username}-${toHexString(nacl.sign(nacl.util.decodeUTF8(Date.now().toString()), keypair.secretKey))}`;
+        // copy it to the clipboard
+        navigator.clipboard.writeText(invite);
+        // notify the user
+        M.toast({html: "Invite copied to clipboard. This invite will expire in 24 hours."});
+    }
+
+    // accept 1v1 invite function
+    async function accept1v1Invite(challenger) {
+        let json = await fetch("/accept1v1Invite", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username,
+                challenger,
+                signature: nacl.util.encodeBase64(nacl.sign(nacl.util.decodeUTF8(`accept-${Date.now()}`), keypair.secretKey))
+            })
+        }).then(res => res.json());
+        if (json.status === "error") {
+            M.toast({html: json.error});
+        } else {
+            window.location.reload();
+        }
+    }
+
+    // decline 1v1 invite function
+    async function decline1v1Invite(challenger) {
+        let json = await fetch("/decline1v1Invite", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username,
+                challenger,
+                signature: nacl.util.encodeBase64(nacl.sign(nacl.util.decodeUTF8(`decline-${Date.now()}`), keypair.secretKey))
+            })
+        }).then(res => res.json());
+        if (json.status === "error") {
+            M.toast({html: json.error});
+        } else {
+            window.location.reload();
+        }
+    }
+</script>
+</body>
+</html>
