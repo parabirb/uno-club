@@ -870,10 +870,10 @@ function expressServer({config, users, games, invites, database}) {
 
         // launch the primary HTTPS app
         https.createServer({
-            key: fs.readFileSync(config.key),
-            ca: fs.readFileSync(config.ca),
-            cert: fs.readFileSync(config.cert)
-        });
+            key: fs.readFileSync(config.sslConfig.key),
+            ca: fs.readFileSync(config.sslConfig.ca),
+            cert: fs.readFileSync(config.sslConfig.cert)
+        }, app).listen(config.sslConfig.port);
     }
 }
 
