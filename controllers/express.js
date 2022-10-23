@@ -191,6 +191,7 @@ function expressServer({config, users, games, invites, database}) {
             const evtListener = (message) => {
                 if (message.type === "state") session.push({type: "state", contents: filterGameInfo(message.contents)});
                 else session.push(message);
+                if (message.type === "win") emitter.removeListener(`${req.params.a}/${req.params.b}`, evtListener);
             };
             emitter.on(`${req.params.a}/${req.params.b}`, evtListener);
             // remove the emitter when our session ends
@@ -241,6 +242,7 @@ function expressServer({config, users, games, invites, database}) {
                     contents: filterGameInfoUser(message.contents, username)
                 });
                 else session.push(message);
+                if (message.type === "win") emitter.removeListener(`${req.params.a}/${req.params.b}`, evtListener);
             };
             emitter.on(`${req.params.a}/${req.params.b}`, evtListener);
             // remove the emitter when our session ends
