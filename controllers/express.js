@@ -429,8 +429,8 @@ function expressServer({config, users, games, invites, database}) {
             let userA = users.findOne({username: req.params.a});
             let userB = users.findOne({username: req.params.b});
             let [newUserA, newUserB] = openskill.rate([[userA.rating], [userB.rating]], {score: [gameObject.points[0], gameObject.points[1]]});
-            userA.rating = newUserA;
-            userB.rating = newUserB;
+            userA.rating = newUserA[0];
+            userB.rating = newUserB[0];
             users.update(userA);
             users.update(userB);
             // push the message
