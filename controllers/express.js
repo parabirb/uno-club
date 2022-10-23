@@ -431,8 +431,8 @@ function expressServer({config, users, games, invites, database}) {
             let [newARating, newBRating] = openskill.rate([[userA.rating], [userB.rating]], {score: [gameObject.points[0], gameObject.points[1]]});
             newARating = newARating[0];
             newBRating = newBRating[0];
-            let newUserA = (new User(userA.username, userA.signingPublicKey, newARating)).toObject();
-            let newUserB = (new User(userB.username, userB.signingPublicKey, newBRating)).toObject();
+            let newUserA = (new User({username: userA.username, signingPublicKey: userA.signingPublicKey, classRating: newARating})).toObject();
+            let newUserB = (new User({username: userB.username, signingPublicKey: userB.signingPublicKey, classRating: newBRating})).toObject();
             users.remove(userA);
             users.remove(userB);
             users.insert(newUserA);
