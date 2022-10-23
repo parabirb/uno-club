@@ -435,8 +435,16 @@ function expressServer({config, users, games, invites, database}) {
             let [newARating, newBRating] = openskill.rate([[userAClone.rating], [userBClone.rating]], {score: [gameObject.points[0], gameObject.points[1]]});
             newARating = newARating[0];
             newBRating = newBRating[0];
-            let newUserA = (new User({username: userAClone.username, signingPublicKey: userAClone.signingPublicKey, rating: newARating})).toObject();
-            let newUserB = (new User({username: userBClone.username, signingPublicKey: userBClone.signingPublicKey, rating: newBRating})).toObject();
+            let newUserA = (new User({
+                username: userAClone.username,
+                signingPublicKey: userAClone.signingPublicKey,
+                rating: newARating
+            })).toObject();
+            let newUserB = (new User({
+                username: userBClone.username,
+                signingPublicKey: userBClone.signingPublicKey,
+                rating: newBRating
+            })).toObject();
             users.insert(newUserA);
             users.insert(newUserB);
             // push the message
@@ -619,7 +627,7 @@ function expressServer({config, users, games, invites, database}) {
             });
             return;
         } else if (req.body.invite !== config.systemInvite) {
-            let inviter = users.findOne(req.body.invite.split("-")[0]);
+            let inviter = users.findOne({username: req.body.invite.split("-")[0]});
             if (inviter === null) {
                 res.status(403).json({
                     status: "error",
