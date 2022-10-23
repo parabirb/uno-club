@@ -1,5 +1,7 @@
 # Uno Club (beta)
 
+**Notice:** Uno Club is currently in very early beta stages. There may still be bugs. Uno Club currently only supports 1v1 games. The code is not very well commented. Uno Club will become more polished over time. The main Uno Club instance can be located at https://wrongthink.me.
+
 The premiere online Uno experience. Zero BS; just the Uno experience you deserve.
 
 Uno Club is:
@@ -48,4 +50,6 @@ Another example for HTTP only:
     "instanceInfo": "This information will be displayed on the homepage."
 }
 ```
+**NOTE:** The HTTP only version is vulnerable to replay attacks. It is intended for testing purposes only. Turning SSL on will automatically disable game requests over HTTP.
+
 You're ready now. Just use a tool like `forever` to keep it running on your server.
