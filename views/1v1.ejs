@@ -107,7 +107,7 @@
                 $("#topCard").removeClass("blue green yellow red");
                 $("#topCard").addClass(`${packet.contents.round.discard[0].color !== "wild" ? packet.contents.round.discard[0].color : packet.contents.round.discard[0].chosen}`);
                 $("#topCard").html(`<h4>${packet.contents.round.discard[0].color.substring(0, 1).toUpperCase() + packet.contents.round.discard[0].color.substring(1)} ${packet.contents.round.discard[0].type.substring(0, 1).toUpperCase() + packet.contents.round.discard[0].type.substring(1)}</h4>`)
-                $("#deck").text(`${packet.contents.round.deck} cards`);
+                $("#deck").text(`${packet.contents.round.deck} ${packet.contents.round.deck === 1 ? "card" : "cards"}`);
                 $("#points").text(`${packet.contents.points[0]} for ${packet.contents.users[0]} and ${packet.contents.points[1]} for ${packet.contents.users[1]}`);
                 $("#cards").text(`${packet.contents.round.hands[0]} for ${packet.contents.users[0]} and ${packet.contents.round.hands[1]} for ${packet.contents.users[1]}`);
                 $("#turn").text(`It's ${packet.contents.users[packet.contents.round.turn]}'s turn. They have ${packet.contents.round.drawn ? "" : "not"} drawn a card${ packet.contents.round.drawn ? "" : " yet"}.`);
