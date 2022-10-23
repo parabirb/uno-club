@@ -70,6 +70,8 @@
         crossorigin="anonymous"
         integrity="sha384-qpU3wxGxaAPcz02pOLeZTv5B0rNzsh3CETsUqdHxRBP70bO0kHoBopr+f9AcGj04"></script>
 <script src="https://cdn.jsdelivr.net/gh/ricmoo/scrypt-js@master/scrypt.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/zxcvbn@4.4.2/dist/zxcvbn.js"
+        integrity="sha256-9CxlH0BQastrZiSQ8zjdR6WVHTMSA5xKuP5QkEhPNRo=" crossorigin="anonymous"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"
         integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
@@ -114,6 +116,13 @@
         }
         // set the state
         registering = true;
+        // make sure the password is secure
+        let { score } = zxcvbn($("#password").val(), [$("#username").val()]);
+        if (score < 3) {
+            M.toast({html: "Your password is too insecure. Please make a better password, then try again."});
+            registering = false;
+            return;
+        }
         // get the invite and verify the username
         let usernameRegex = /^[a-zA-Z0-9]{1,24}$/;
         let invite = $("#invite").val();
