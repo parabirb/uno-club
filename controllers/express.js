@@ -382,7 +382,7 @@ function expressServer({config, users, games, invites, database}) {
         }
 
         // ensure the user hasn't drawn a playable card
-        if (gameObject.round.drawn && index !== gameObject.round.hands[userIndex].length - 1 && (gameObject.round.discard[0].type === lastCard.type || gameObject.round.discard[0].color === lastCard.color || gameObject.round.discard[0].chosen === lastCard.color) && (lastCard.color !== "wild" ? true : (lastCard.type !== "draw 4" || wildDraw4Playable()))) {
+        if (gameObject.round.drawn && index !== gameObject.round.hands[userIndex].length - 1 && (gameObject.round.discard[0].type === lastCard.type || gameObject.round.discard[0].color === lastCard.color || gameObject.round.discard[0].chosen === lastCard.color || lastCard.color === "wild") && (lastCard.color !== "wild" ? true : (lastCard.type !== "draw 4" || wildDraw4Playable()))) {
             res.status(403).json({
                 status: "error",
                 error: "Card cannot be played. If a drawn card is playable, it must be played. The last card in the hand is the card last drawn."
