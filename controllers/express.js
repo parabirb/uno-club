@@ -682,6 +682,14 @@ function expressServer({config, users, games, invites, database}) {
             });
             return;
         }
+        // make sure the challenger and challengee are not the same
+        if (req.body.challenger === req.body.username) {
+            res.status(403).json({
+                status: "error",
+                error: "You cannot invite yourself to a game."
+            });
+            return;
+        }
         // verify signature
         let sigData = nacl.sign.open(nacl.util.decodeBase64(req.body.signature), fromHexString(challenger.signingPublicKey));
         if (sigData === null) {
