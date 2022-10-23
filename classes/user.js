@@ -1,10 +1,10 @@
-const { rating } = require("openskill");
+const openskill = require("openskill");
 
 class User {
-    constructor({username, signingPublicKey, classRating}) {
+    constructor({username, signingPublicKey, rating }) {
         this.username = username;
         this.signingPublicKey = signingPublicKey;
-        this.rating = classRating || rating();
+        this.rating = rating || openskill.rating();
     }
     toObject() {
         return { username: this.username, signingPublicKey: this.signingPublicKey, rating: this.rating };
