@@ -184,7 +184,6 @@
             let packet = JSON.parse(event.data);
             // if the game state changed
             if (packet.type === "state") {
-                console.log(packet.contents);
                 let userIndex = packet.contents.users.indexOf(username);
                 let opponentIndex = userIndex === 1 ? 0 : 1;
                 let userHand = packet.contents.round.hands[userIndex];
