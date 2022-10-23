@@ -71,7 +71,7 @@ function expressServer({config, users, games, invites, database}) {
     app.use(express.json());
 
     // get controllers
-    app.get("/", (req, res) => res.render("index", {instanceInfo: config.instanceInfo}));
+    app.get("/", (req, res) => res.render("index", {instanceInfo: config.instanceInfo, users: users.count()}));
     app.get("/register", (req, res) => res.render("register"));
     app.get("/login", (req, res) => res.render("login"));
     app.get("/dashboard", (req, res) => res.render("dashboard"));
