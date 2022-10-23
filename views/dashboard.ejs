@@ -112,7 +112,7 @@
     // set profile link
     $("#profile").attr("href", `/profile/${username}`);
     // set ranking value
-    fetch(`/userInfo/${username}`).then(res => res.json()).then(json => $("#rating").text(`Rating: ${Math.round(((json.data.rating.mu - (3 * json.data.rating.sigma)) * 100) / 100)}`));
+    fetch(`/userInfo/${username}`).then(res => res.json()).then(json => $("#rating").text(`Rating: ${Math.round((json.data.rating.mu - (3 * json.data.rating.sigma)) * 100) / 100}`));
     // set games value
     fetch(`/gamesInfo/${username}`).then(res => res.json()).then(json => {
         if (json.data.length === 0) $("#games").html("<p>You aren't in any active games.</p>");
