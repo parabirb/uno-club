@@ -2,7 +2,7 @@
 
 **Notice:** Uno Club is currently in very early beta stages. There may still be bugs. Uno Club currently only supports 1v1 games. The code is not very well commented. Uno Club will become more polished over time. The main Uno Club instance can be located at https://wrongthink.me.
 
-The premiere online Uno experience. Zero BS; just the Uno experience you deserve.
+The premier online Uno experience. Zero BS; just the Uno experience you deserve.
 
 Uno Club is:
 * Realistic. Uno Club follows most of the stock Uno ruleset with minor exceptions made for playability. 
