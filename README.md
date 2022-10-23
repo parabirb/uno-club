@@ -13,10 +13,13 @@ Uno Club is:
 * Easy to deploy. Uno Club can be deployed in a matter of minutes.
 * Fun. Uno Club is designed to be fun to play with your friends and comes with a built-in chat.
 
-If you want to join Uno Club's main instance, contact parabirb#5688 for an invite.
+If you want to join Uno Club's main instance, contact [parabirb#5688](https://discord.com/users/884967775066550313) for an invite.
+
 
 ## Todo
-Currently, the only functionality left to implement is multiplayer (non-1v1).
+- Displaying the last few cards on the discard pile
+- Matchmaking (1v1)
+- Multiplayer
 
 ## Deployment for Self-Hosting
 Steps:
@@ -43,7 +46,7 @@ Write a config. Example config:
 Another example for HTTP only:
 ```
 {
-    "port: 80,
+    "port": 80,
     "ssl": false,
     "backupTime": 15,
     "systemInvite": "This invite code is permanent and can be used to create initial users.",
