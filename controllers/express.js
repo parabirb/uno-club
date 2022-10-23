@@ -46,7 +46,9 @@ function expressServer({config, users, games, invites, database}) {
 
     // function to find 1v1 game
     function find1v1Game(a, b) {
-        return games.findOne({users: {$contains: [a, b]}});
+        let game = games.findOne({users: {$contains: [a, b]}});
+        if (game.users[0] !== a) return null;
+        else return game;
     }
 
     // function to sync database and prune things
