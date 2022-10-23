@@ -428,11 +428,15 @@ function expressServer({config, users, games, invites, database}) {
             // change the ranks of the users
             let userA = users.findOne({username: req.params.a});
             let userB = users.findOne({username: req.params.b});
-            let [newUserA, newUserB] = openskill.rate([[userA.rating], [userB.rating]], {score: [gameObject.points[0], gameObject.points[1]]});
-            userA.rating = newUserA[0];
-            userB.rating = newUserB[0];
-            users.update(userA);
-            users.update(userB);
+            let [newARating, newBRating] = openskill.rate([[userA.rating], [userB.rating]], {score: [gameObject.points[0], gameObject.points[1]]});
+            newARating = newARating[0];
+            newBRating = newBRating[0];
+            let newUserA = (new User(userA.username, userA.signingPublicKey, newARating)).toObject();
+            let newUserB = (new User(userB.username, userB.signingPublicKey, newBRating)).toObject();
+            users.remove(userA);
+            users.remove(userB);
+            users.insert(newUserA);
+            users.insert(newUserB);
             // push the message
             emitter.emit(`${req.params.a}/${req.params.b}`, {
                 type: "win",
