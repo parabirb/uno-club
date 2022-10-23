@@ -435,8 +435,8 @@ function expressServer({config, users, games, invites, database}) {
             let [newARating, newBRating] = openskill.rate([[userAClone.rating], [userBClone.rating]], {score: [gameObject.points[0], gameObject.points[1]]});
             newARating = newARating[0];
             newBRating = newBRating[0];
-            let newUserA = (new User({username: userAClone.username, signingPublicKey: userAClone.signingPublicKey, classRating: newARating})).toObject();
-            let newUserB = (new User({username: userBClone.username, signingPublicKey: userBClone.signingPublicKey, classRating: newBRating})).toObject();
+            let newUserA = (new User({username: userAClone.username, signingPublicKey: userAClone.signingPublicKey, rating: newARating})).toObject();
+            let newUserB = (new User({username: userBClone.username, signingPublicKey: userBClone.signingPublicKey, rating: newBRating})).toObject();
             users.insert(newUserA);
             users.insert(newUserB);
             // push the message
