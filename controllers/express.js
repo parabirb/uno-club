@@ -627,8 +627,16 @@ function expressServer({config, users, games, invites, database}) {
                 });
                 return;
             }
-            let invitation = +nacl.util.encodeUTF8(nacl.sign.open(fromHexString(req.body.invite.split("-")[1]), fromHexString(inviter.signingPublicKey)));
-            if (invitation === 0 || isNaN(invitation) || Date.now() > (invitation + 24 * 60 * 60 * 1000)) {
+            let invitation = nacl.sign.open(fromHexString(req.body.invite.split("-")[1]), fromHexString(inviter.signingPublicKey));
+            if (invitation === null) {
+                res.status(403).json({
+                    status: "error",
+                    error: "Invite code is invalid."
+                });
+                return;
+            }
+            invitation = +nacl.util.encodeUTF8(invitation);
+            if (isNaN(invitation) || Date.now() > (invitation + 24 * 60 * 60 * 1000)) {
                 res.status(403).json({
                     status: "error",
                     error: "Invite code does not function. This is most likely because it has expired."
