@@ -428,13 +428,15 @@ function expressServer({config, users, games, invites, database}) {
             // change the ranks of the users
             let userA = users.findOne({username: req.params.a});
             let userB = users.findOne({username: req.params.b});
-            let [newARating, newBRating] = openskill.rate([[userA.rating], [userB.rating]], {score: [gameObject.points[0], gameObject.points[1]]});
-            newARating = newARating[0];
-            newBRating = newBRating[0];
-            let newUserA = (new User({username: userA.username, signingPublicKey: userA.signingPublicKey, classRating: newARating})).toObject();
-            let newUserB = (new User({username: userB.username, signingPublicKey: userB.signingPublicKey, classRating: newBRating})).toObject();
+            let userAClone = (new User(userA)).toObject();
+            let userBClone = (new User(userB)).toObject();
             users.remove(userA);
             users.remove(userB);
+            let [newARating, newBRating] = openskill.rate([[userAClone.rating], [userBClone.rating]], {score: [gameObject.points[0], gameObject.points[1]]});
+            newARating = newARating[0];
+            newBRating = newBRating[0];
+            let newUserA = (new User({username: userAClone.username, signingPublicKey: userAClone.signingPublicKey, classRating: newARating})).toObject();
+            let newUserB = (new User({username: userBClone.username, signingPublicKey: userBClone.signingPublicKey, classRating: newBRating})).toObject();
             users.insert(newUserA);
             users.insert(newUserB);
             // push the message
