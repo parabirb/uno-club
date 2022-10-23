@@ -43,7 +43,7 @@ Write a config. Example config:
 Another example for HTTP only:
 ```
 {
-    "port: 80,
+    "port": 80,
     "ssl": false,
     "backupTime": 15,
     "systemInvite": "This invite code is permanent and can be used to create initial users.",
