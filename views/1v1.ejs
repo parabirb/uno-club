@@ -62,6 +62,7 @@
         </div>
     </div>
 </main>
+<script src="https://cdn.jsdelivr.net/npm/party-js@latest/bundle/party.min.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/dchest/tweetnacl-js@71df1d6a1d78236ca3e9f6c788786e21f5a651a6/nacl-fast.min.js"
         crossorigin="anonymous"
         integrity="sha384-05+sicyRJQ56XpL4U9HJ8YbtSzFDvAg7apPKOGV6A0JsAJKFM68jp5oLnUjG5mEp"></script>
@@ -227,6 +228,7 @@
             // if someone won
             else if (packet.type === "win") {
                 $("#state").text(`This game has ended. ${packet.contents === username ? "You" : "Your opponent"} won.`);
+                if (packet.contents === username) party.confetti(document.body, {count: party.variation.range(100, 200)});
                 $("#chatboxContainer").addClass("hide");
                 $("#hand").hide();
                 $("#handTitle").hide();
