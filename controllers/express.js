@@ -47,7 +47,7 @@ function expressServer({config, users, games, invites, database}) {
     // function to find 1v1 game
     function find1v1Game(a, b) {
         let game = games.findOne({users: {$contains: [a, b]}});
-        if (game.users[0] !== a) return null;
+        if (game === null || game.users[0] !== a) return null;
         else return game;
     }
 
